@@ -1,0 +1,9 @@
+{
+  "items": [
+    {"id": "ana@example.com", "summary": "ana@example.com", "summaryOverride": "Pessoal", "primary": true, "selected": true},
+    {"id": "abc123@group.calendar.google.com", "summary": "Projetos", "selected": true},
+    {"id": "old@group.calendar.google.com", "summary": "Antigo", "selected": false},
+    {"id": "pt.brazilian#holiday@group.v.calendar.google.com", "summary": "Feriados no Brasil", "selected": true},
+    {"id": "hidden@group.calendar.google.com", "summary": "Escondido", "selected": true, "hidden": true}
+  ]
+}

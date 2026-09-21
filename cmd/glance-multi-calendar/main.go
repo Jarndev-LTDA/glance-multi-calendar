@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/jarndev-ltda/glance-multi-calendar/internal/server"
 	"github.com/jarndev-ltda/glance-multi-calendar/internal/source"
 	"github.com/jarndev-ltda/glance-multi-calendar/internal/source/demo"
+	"github.com/jarndev-ltda/glance-multi-calendar/internal/source/google"
 )
 
 var version = "dev"
@@ -45,29 +47,50 @@ func run(configPath string) error {
 	if err != nil {
 		return err
 	}
-
-	// Later phases append the Google (and ICS) sources here once accounts
-	// are connected. With nothing connected we serve the demo data so the
-	// widget can be evaluated without any credentials.
-	var sources []source.Source
-	if len(sources) == 0 {
-		slog.Warn("no account connected: serving DEMO data")
-		sources = append(sources, demo.New(cfg.Location))
-	}
-
-	ag := &agenda.Service{Sources: sources, Location: cfg.Location}
-	srv := &http.Server{
-		Addr:              cfg.Listen,
-		Handler:           server.New(cfg, ag, nil),
-		ReadHeaderTimeout: 10 * time.Second,
-	}
+	cfg.LoadEnv()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	var (
+		src source.Source
+		g   *google.Source
+	)
+	demoSrc := demo.New(cfg.Location)
+	if cfg.HasGoogle() {
+		if err := os.MkdirAll(cfg.DataDir, 0o700); err != nil {
+			return fmt.Errorf("data_dir %s: %w", cfg.DataDir, err)
+		}
+		store, err := google.OpenStore(filepath.Join(cfg.DataDir, "tokens.json"))
+		if err != nil {
+			return err
+		}
+		g = google.New(store, google.Options{
+			ClientID: cfg.GoogleClientID, ClientSecret: cfg.GoogleClientSecret, RedirectURL: cfg.OAuth.RedirectURL,
+			Location: cfg.Location, IgnoreCalendars: cfg.IgnoreCalendars,
+		})
+		go g.Run(ctx, cfg.Refresh, cfg.Window.Days)
+		src = source.Fallback{Primary: g, Alt: demoSrc, UsePrimary: func() bool { return g.Connected() > 0 }}
+		if n := g.Connected(); n == 0 {
+			slog.Warn("google credentials set but no account connected yet: serving DEMO data; open /connect (through the SSH tunnel)")
+		} else {
+			slog.Info("google source ready", "accounts", n, "refresh", cfg.Refresh)
+		}
+	} else {
+		slog.Warn("GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET not set: serving DEMO data")
+		src = demoSrc
+	}
+
+	ag := &agenda.Service{Sources: []source.Source{src}, Location: cfg.Location}
+	srv := &http.Server{
+		Addr:              cfg.Listen,
+		Handler:           server.New(cfg, ag, nil, g),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+
 	errc := make(chan error, 1)
 	go func() {
-		slog.Info("listening", "addr", cfg.Listen, "timezone", cfg.Timezone, "version", version)
+		slog.Info("listening", "addr", cfg.Listen, "timezone", cfg.Timezone, "version", version, "auth_token", cfg.AuthToken != "")
 		errc <- srv.ListenAndServe()
 	}()
 

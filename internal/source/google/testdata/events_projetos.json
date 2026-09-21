@@ -1,0 +1,7 @@
+{
+  "items": [
+    {"id": "proj1", "status": "confirmed", "summary": "Sprint review", "iCalUID": "proj1@google.com",
+     "start": {"dateTime": "2026-09-25T16:00:00-03:00"}, "end": {"dateTime": "2026-09-25T17:00:00-03:00"}}
+  ],
+  "nextPageToken": "page2"
+}

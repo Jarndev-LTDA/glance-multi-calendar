@@ -37,6 +37,9 @@ func TestCollectMergesAndSurvivesFailure(t *testing.T) {
 	if len(res.Events) == 0 {
 		t.Fatal("no events from the healthy source")
 	}
+	if !res.Demo {
+		t.Error("demo source must flag the result as demo")
+	}
 	if res.Timezone != "America/Bahia" || res.From.Location() != loc {
 		t.Errorf("times not converted to configured zone: tz=%s from=%s", res.Timezone, res.From)
 	}

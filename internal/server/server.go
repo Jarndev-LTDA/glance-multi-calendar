@@ -18,6 +18,7 @@ import (
 	"github.com/jarndev-ltda/glance-multi-calendar/internal/config"
 	"github.com/jarndev-ltda/glance-multi-calendar/internal/render"
 	"github.com/jarndev-ltda/glance-multi-calendar/internal/source"
+	"github.com/jarndev-ltda/glance-multi-calendar/internal/source/google"
 )
 
 // Server holds the dependencies of the handlers.
@@ -26,10 +27,13 @@ type Server struct {
 	agenda *agenda.Service
 	now    func() time.Time
 	labels agenda.Labels
+	google *google.Source // nil when no credentials are configured
+	states oauthStates
 }
 
-// New builds the router. now may be nil (defaults to time.Now).
-func New(cfg config.Config, ag *agenda.Service, now func() time.Time) http.Handler {
+// New builds the router. now may be nil (defaults to time.Now); g may be
+// nil (demo only, /connect explains how to configure credentials).
+func New(cfg config.Config, ag *agenda.Service, now func() time.Time, g *google.Source) http.Handler {
 	if now == nil {
 		now = time.Now
 	}
@@ -37,12 +41,16 @@ func New(cfg config.Config, ag *agenda.Service, now func() time.Time) http.Handl
 	if cfg.Title != "" {
 		lab.Title = cfg.Title
 	}
-	s := &Server{cfg: cfg, agenda: ag, now: now, labels: lab}
+	s := &Server{cfg: cfg, agenda: ag, now: now, labels: lab, google: g}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", s.healthz)
-	mux.HandleFunc("GET /events.json", s.eventsJSON)
-	mux.HandleFunc("GET /widget/week", s.widgetWeek)
+	mux.Handle("GET /events.json", requireToken(cfg.AuthToken, http.HandlerFunc(s.eventsJSON)))
+	mux.Handle("GET /widget/week", requireToken(cfg.AuthToken, http.HandlerFunc(s.widgetWeek)))
 	mux.HandleFunc("GET /{$}", s.page)
+	mux.HandleFunc("GET /connect", s.connect)
+	mux.HandleFunc("GET /oauth/start", s.oauthStart)
+	mux.HandleFunc("GET /oauth/callback", s.oauthCallback)
+	mux.HandleFunc("POST /accounts/{id}/disconnect", s.disconnect)
 	return logRequests(mux)
 }
 

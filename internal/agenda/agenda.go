@@ -31,6 +31,8 @@ type Result struct {
 	// Errors lists sources that failed. The rest of the payload is still
 	// valid: one broken account must never blank the whole widget.
 	Errors []string `json:"errors,omitempty"`
+	// Demo is true while the fictitious data is being served.
+	Demo bool `json:"demo,omitempty"`
 }
 
 // Collect queries every source for the window. A failing source is reported
@@ -68,6 +70,12 @@ func (s *Service) Collect(ctx context.Context, w source.Window) Result {
 			continue
 		}
 		res.Accounts = append(res.Accounts, accts...)
+		if wr, ok := src.(source.Warner); ok {
+			res.Errors = append(res.Errors, wr.Warnings()...)
+		}
+		if d, ok := src.(interface{ Demo() bool }); ok && d.Demo() {
+			res.Demo = true
+		}
 		for _, e := range evs {
 			if !w.Overlaps(e) {
 				continue // defensive: sources should already filter

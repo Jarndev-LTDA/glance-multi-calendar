@@ -16,9 +16,10 @@ Real renders of the demo data inside Glance 0.8.6 (`examples/glance/`) and on
 the standalone page in the light theme. In a narrow container the grid keeps
 three days and lists the rest below.
 
-> Status: **work in progress**. What works today: the grid widget
-> (`/widget/week`, `/`) and `/events.json`, all on demo data. Google OAuth
-> and the published image are next.
+> Status: **work in progress**. The grid, `/events.json` and the Google
+> OAuth flow (`/connect`) are implemented and covered by tests against
+> recorded API responses; end-to-end validation with real accounts and the
+> published image are next.
 
 ## Why
 
@@ -95,6 +96,25 @@ ssh -L 8089:localhost:8089 your-server   # only while connecting
 # then open http://localhost:8089/connect and log in with each Google account
 ```
 
+`/connect` lists the accounts of `config.yml` with their state (connected
+as which e-mail, needs reconnect) and a button each. Connecting stores only
+the refresh token in `<data_dir>/tokens.json`; "esquecer" deletes it locally,
+revoking for real happens at
+[myaccount.google.com/permissions](https://myaccount.google.com/permissions).
+
+What the service does with an account: every calendar that is checked in
+your Google Calendar sidebar (`selected`, not hidden) is read, except the
+IDs in `ignore_calendars`. Events are fetched already expanded
+(`singleEvents=true`) for a rolling window and cached in memory; Glance
+never triggers a Google call. Cancelled instances, invitations you declined
+and working-location markers are skipped. The same invitation accepted in
+two accounts is shown once. A revoked token flags that account as "needs
+reconnect" and the other accounts keep working; rate limits back off and
+keep the last cache.
+
+While no account is connected the demo data is served, so you can wire the
+widget before touching Google Cloud.
+
 ## HTTP API
 
 | Route | Returns |
@@ -103,10 +123,14 @@ ssh -L 8089:localhost:8089 your-server   # only while connecting
 | `GET /events.json?days=7&from=YYYY-MM-DD` | merged events, sorted by start, times in the configured zone |
 | `GET /widget/week` | HTML fragment with `Widget-Title` / `Widget-Content-Type: html` headers, for the `extension` widget |
 | `GET /?theme=dark\|light` | the same grid as a standalone page, for debugging in both Glance themes |
-| `GET /connect` | *(soon)* connected accounts + "connect another account" |
+| `GET /connect` | account management (see above) |
+| `GET /oauth/start?account=id` → `GET /oauth/callback` | the consent flow |
+| `POST /accounts/{id}/disconnect` | forget the stored token |
 
 The grid routes also accept `start_hour`, `end_hour` (override the floor,
-still clamped by `min_hour`/`max_hour`) and `accounts=a,b` (filter).
+still clamped by `min_hour`/`max_hour`) and `accounts=a,b` (filter). Keep
+`days` within the configured window: a larger value misses the in-memory
+cache and hits Google on every request.
 
 `/events.json` shape:
 
@@ -122,9 +146,14 @@ still clamped by `min_hour`/`max_hour`) and `accounts=a,b` (filter).
     "start": "2026-09-21T09:00:00-03:00", "end": "2026-09-21T10:40:00-03:00",
     "all_day": false, "location": "…", "url": "…", "description": "…"
   }],
-  "errors": ["only present when a source failed; the others still render"]
+  "errors": ["only present when a source failed; the others still render"],
+  "demo": true
 }
 ```
+
+`demo` is present only while the fictitious data is served. Set
+`GMC_AUTH_TOKEN` to require `Authorization: Bearer …` on `/widget/week` and
+`/events.json` (Glance can send it through the widget's `headers:`).
 
 All-day events carry midnight `start`/`end` with an **exclusive** end, as in
 the Google API and RFC 5545.
@@ -138,7 +167,8 @@ the Google API and RFC 5545.
   cache: 5m
 ```
 
-Put it in a `full` column: seven day columns need the width. All colours come
+Put it in a `full` column: seven day columns need the width. Data can be up
+to `cache` + `refresh` old (10 minutes with the defaults). All colours come
 from Glance's theme variables (`--color-primary`, `--color-text-*`,
 `--color-separator`...), so the widget follows whatever theme is active; the
 account colour is the only literal one.
@@ -152,6 +182,13 @@ go run ./cmd/glance-multi-calendar -config config.example.yml
 ./scripts/screenshots.sh docs/screenshots       # PNGs of the running service, both themes
 docker build --platform linux/arm64 .           # cross-compiles, no qemu needed
 ```
+
+To test the OAuth flow on your machine, use the root `docker compose up
+--build`: it publishes port 8089 (Google matches the redirect port exactly),
+reads `.env` from the repo directory and keeps `tokens.json` in a volume.
+With `go run` you would have to export `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`
+yourself (the binary reads the environment, not the `.env` file), set
+`listen: ":8089"` and `data_dir: ./data`.
 
 `mockup/agenda.html` is the original visual specification the template was
 ported from.

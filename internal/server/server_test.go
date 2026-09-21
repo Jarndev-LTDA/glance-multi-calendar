@@ -24,7 +24,7 @@ func newTestServer(t *testing.T) http.Handler {
 	}
 	now := func() time.Time { return time.Date(2026, 9, 21, 10, 38, 0, 0, cfg.Location) }
 	ag := &agenda.Service{Sources: []source.Source{demo.New(cfg.Location)}, Location: cfg.Location, Now: now}
-	return New(cfg, ag, now)
+	return New(cfg, ag, now, nil)
 }
 
 func TestHealthz(t *testing.T) {
@@ -184,7 +184,7 @@ func TestConfigOverridesAccountLabels(t *testing.T) {
 	cfg.Validate()
 	now := func() time.Time { return time.Date(2026, 9, 21, 10, 38, 0, 0, cfg.Location) }
 	ag := &agenda.Service{Sources: []source.Source{demo.New(cfg.Location)}, Location: cfg.Location, Now: now}
-	h := New(cfg, ag, now)
+	h := New(cfg, ag, now, nil)
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, httptest.NewRequest("GET", "/widget/week", nil))
 	b := rr.Body.String()

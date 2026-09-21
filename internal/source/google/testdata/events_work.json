@@ -1,0 +1,12 @@
+{
+  "items": [
+    {"id": "shared1-copy", "status": "confirmed", "summary": "Planejamento Q4", "iCalUID": "shared1@google.com",
+     "start": {"dateTime": "2026-09-24T10:00:00-03:00"}, "end": {"dateTime": "2026-09-24T11:00:00-03:00"}},
+    {"id": "rec1w_20260921T120000Z", "status": "confirmed", "summary": "Daily", "iCalUID": "rec1@google.com",
+     "start": {"dateTime": "2026-09-21T09:00:00-03:00"}, "end": {"dateTime": "2026-09-21T09:15:00-03:00"}},
+    {"id": "rec1w_20260924T120000Z", "status": "confirmed", "summary": "Daily", "iCalUID": "rec1@google.com",
+     "start": {"dateTime": "2026-09-24T09:00:00-03:00"}, "end": {"dateTime": "2026-09-24T09:15:00-03:00"}},
+    {"id": "work1", "status": "confirmed", "summary": "Só no trabalho", "iCalUID": "work1@google.com",
+     "start": {"dateTime": "2026-09-22T11:00:00-03:00"}, "end": {"dateTime": "2026-09-22T12:00:00-03:00"}}
+  ]
+}

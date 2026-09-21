@@ -2,12 +2,19 @@
 # Copy to config.yml. Secrets go in .env (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET)
 # and the OAuth refresh tokens are written by the service to <data_dir>/tokens.json.
 
-listen: ":8080"
+listen: ":8080"           # for a LOCAL OAuth test use ":8089" (Google matches the redirect port exactly)
 timezone: America/Bahia   # any IANA name; the grid is rendered server-side in this zone
 language: pt-BR           # labels: pt-BR or en
 # title: Agenda           # widget title (default: "Agenda" / "Calendar" by language)
 refresh: 5m               # how often the calendar APIs are polled
-data_dir: /data           # where tokens.json lives (mount a volume here)
+data_dir: /data           # where tokens.json lives (mount a volume here; use ./data with `go run`)
+
+oauth:
+  # Must match the "Authorized redirect URI" of the Web-application client in
+  # console.cloud.google.com exactly. Google only allows plain http on
+  # localhost, never on a LAN IP: connect accounts through an SSH tunnel
+  # (ssh -L 8089:localhost:8089 your-server) and open http://localhost:8089/connect
+  redirect_url: http://localhost:8089/oauth/callback
 
 window:
   days: 7                 # rolling window starting today

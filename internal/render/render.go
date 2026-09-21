@@ -25,9 +25,12 @@ var weekHTML string
 //go:embed page.html
 var pageHTML string
 
+//go:embed connect.html
+var connectHTML string
+
 var tpl = template.Must(template.New("").Funcs(template.FuncMap{
 	"lines": func(s string) []string { return strings.Split(s, "\n") },
-}).Parse(weekHTML + pageHTML))
+}).Parse(weekHTML + pageHTML + connectHTML))
 
 type fragmentData struct {
 	agenda.View
@@ -68,10 +71,18 @@ type pageData struct {
 // Page writes a complete HTML document embedding the fragment, with the
 // Glance variables of the named theme defined on :root.
 func Page(w io.Writer, v agenda.View, lang, theme string) error {
-	vars, ok := Themes[theme]
-	if !ok {
+	if _, ok := Themes[theme]; !ok {
 		return fmt.Errorf("unknown theme %q", theme)
 	}
+	return tpl.ExecuteTemplate(w, "page", pageData{
+		Title: v.Title, Lang: lang, ThemeCSS: themeCSS(theme),
+		Fragment: fragmentData{View: v, CSS: template.CSS(weekCSS)},
+	})
+}
+
+// themeCSS renders a theme's variables as a `{...}` block for :root.
+func themeCSS(theme string) template.CSS {
+	vars := Themes[theme]
 	var b strings.Builder
 	b.WriteString("{")
 	for _, k := range []string{"--color-background", "--color-widget-background", "--color-text-base", "--color-text-paragraph",
@@ -79,8 +90,30 @@ func Page(w io.Writer, v agenda.View, lang, theme string) error {
 		fmt.Fprintf(&b, "%s:%s;", k, vars[k])
 	}
 	b.WriteString("}")
-	return tpl.ExecuteTemplate(w, "page", pageData{
-		Title: v.Title, Lang: lang, ThemeCSS: template.CSS(b.String()),
-		Fragment: fragmentData{View: v, CSS: template.CSS(weekCSS)},
-	})
+	return template.CSS(b.String())
+}
+
+// ConnectAccount is one row of the /connect page.
+type ConnectAccount struct {
+	ID, Name, Color, Email, ConnectedAt string
+	Connected, NeedsReconnect           bool
+}
+
+// ConnectView is the data of the /connect page.
+type ConnectView struct {
+	Title, Lang, RedirectURL string
+	Configured               bool
+	Accounts                 []ConnectAccount
+	Notice, Error            string
+}
+
+type connectData struct {
+	ConnectView
+	ThemeCSS template.CSS
+}
+
+// Connect writes the account-management page (always in the dark theme; it
+// is an admin page, not a widget).
+func Connect(w io.Writer, v ConnectView) error {
+	return tpl.ExecuteTemplate(w, "connect", connectData{ConnectView: v, ThemeCSS: themeCSS("dark")})
 }

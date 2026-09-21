@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	// Embed the IANA database so `timezone: America/Bahia` also works inside
@@ -32,6 +33,11 @@ type Account struct {
 	Color string `yaml:"color"`
 }
 
+// OAuth holds the redirect the Google client was registered with.
+type OAuth struct {
+	RedirectURL string `yaml:"redirect_url"`
+}
+
 // Config is the whole config.yml.
 type Config struct {
 	Listen          string        `yaml:"listen"`
@@ -43,9 +49,24 @@ type Config struct {
 	Window          Window        `yaml:"window"`
 	Accounts        []Account     `yaml:"accounts"`
 	IgnoreCalendars []string      `yaml:"ignore_calendars"`
+	OAuth           OAuth         `yaml:"oauth"`
 
 	// Location is Timezone resolved; filled by Validate.
 	Location *time.Location `yaml:"-"`
+	// Secrets come from the environment, never from the file.
+	GoogleClientID     string `yaml:"-"`
+	GoogleClientSecret string `yaml:"-"`
+	AuthToken          string `yaml:"-"` // optional bearer token for the widget routes
+}
+
+// HasGoogle reports whether OAuth credentials were provided.
+func (c Config) HasGoogle() bool { return c.GoogleClientID != "" && c.GoogleClientSecret != "" }
+
+// LoadEnv fills the secret fields from the environment.
+func (c *Config) LoadEnv() {
+	c.GoogleClientID = os.Getenv("GOOGLE_CLIENT_ID")
+	c.GoogleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+	c.AuthToken = os.Getenv("GMC_AUTH_TOKEN")
 }
 
 // Default is the configuration used when config.yml is absent or omits a key.
@@ -57,6 +78,7 @@ func Default() Config {
 		Refresh:  5 * time.Minute,
 		DataDir:  "/data",
 		Window:   Window{Days: 7, StartHour: 7, EndHour: 22, MinHour: 0, MaxHour: 24},
+		OAuth:    OAuth{RedirectURL: "http://localhost:8089/oauth/callback"},
 	}
 }
 
@@ -102,6 +124,9 @@ func (c *Config) Validate() error {
 	}
 	if c.Language != "pt-BR" && c.Language != "en" {
 		return fmt.Errorf("language must be pt-BR or en, got %q", c.Language)
+	}
+	if !strings.HasPrefix(c.OAuth.RedirectURL, "http://") && !strings.HasPrefix(c.OAuth.RedirectURL, "https://") {
+		return fmt.Errorf("oauth.redirect_url must be an absolute URL, got %q", c.OAuth.RedirectURL)
 	}
 	if c.Refresh < 30*time.Second {
 		return fmt.Errorf("refresh must be at least 30s, got %s", c.Refresh)

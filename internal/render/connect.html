@@ -1,0 +1,63 @@
+{{define "connect"}}<!doctype html>
+<html lang="{{.Lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{.Title}} · contas</title>
+<style>
+:root{{.ThemeCSS}}
+*{box-sizing:border-box}
+body{margin:0;padding:22px;background:var(--color-background);color:var(--color-text-base);font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45}
+.frame{max-width:720px;margin:0 auto;background:var(--color-widget-background);border-radius:8px;padding:18px 20px 20px}
+h1{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-text-subdue);margin:0 0 16px;font-weight:500}
+h2{font-size:15px;color:var(--color-text-highlight);margin:22px 0 8px;font-weight:600}
+p{margin:6px 0;color:var(--color-text-paragraph)}
+.msg{padding:9px 12px;border-radius:6px;margin:0 0 14px;border-left:3px solid var(--color-positive)}
+.msg.err{border-left-color:var(--color-negative)}
+.acc{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--color-separator)}
+.acc:last-child{border-bottom:1px solid var(--color-separator)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c)}
+.acc b{color:var(--color-text-highlight);font-weight:600}
+.acc small{color:var(--color-text-subdue)}
+.acc .grow{flex:1;min-width:0}
+.warn{color:var(--color-negative)}
+form{display:inline;margin:0}
+button,input[type=text]{font:inherit;font-size:13px;border-radius:6px;border:1px solid var(--color-separator);padding:6px 12px;background:transparent;color:var(--color-text-highlight)}
+button{cursor:pointer}
+button.primary{background:var(--color-primary);color:var(--color-background);border-color:var(--color-primary);font-weight:600}
+code{font-size:12px;background:var(--color-background);padding:1px 5px;border-radius:4px}
+ol{padding-left:20px}
+a{color:var(--color-primary)}
+</style>
+</head>
+<body>
+<div class="frame">
+<h1>{{.Title}} · contas Google</h1>
+{{if .Notice}}<div class="msg">{{.Notice}}</div>{{end}}
+{{if .Error}}<div class="msg err">{{.Error}}</div>{{end}}
+{{if not .Configured}}
+<p><b>Credenciais do Google não configuradas.</b> O serviço está servindo dados de demonstração.</p>
+<p>Defina <code>GOOGLE_CLIENT_ID</code> e <code>GOOGLE_CLIENT_SECRET</code> no <code>.env</code>
+(cliente OAuth do tipo <i>Aplicativo da Web</i>, com o redirecionamento <code>{{.RedirectURL}}</code>) e reinicie.
+O passo a passo está no README.</p>
+{{else}}
+<p>Cada conta é autorizada uma vez; o serviço guarda só o <i>refresh token</i> em <code>tokens.json</code>.
+Para revogar de verdade, use <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">myaccount.google.com/permissions</a>.</p>
+<h2>Contas</h2>
+{{range .Accounts}}<div class="acc">
+<i class="dot" style="--c:{{.Color}}"></i>
+<div class="grow"><b>{{.Name}}</b> <small>{{.ID}}</small><br>
+{{if .Connected}}<small>{{.Email}} · conectada em {{.ConnectedAt}}</small>{{if .NeedsReconnect}} <span class="warn">· precisa reconectar</span>{{end}}{{else}}<small>não conectada</small>{{end}}</div>
+{{if .Connected}}<form method="get" action="/oauth/start"><input type="hidden" name="account" value="{{.ID}}"><button>reconectar</button></form>
+<form method="post" action="/accounts/{{.ID}}/disconnect"><button>esquecer</button></form>
+{{else}}<form method="get" action="/oauth/start"><input type="hidden" name="account" value="{{.ID}}"><button class="primary">conectar</button></form>{{end}}
+</div>{{end}}
+<h2>Outra conta</h2>
+<form method="get" action="/oauth/start"><input type="text" name="account" placeholder="id, ex.: familia" pattern="[a-z0-9][a-z0-9_-]{0,31}" required> <button>conectar</button></form>
+<p><small>Rótulo e cor vêm do <code>config.yml</code> (<code>accounts:</code>); um id fora dele recebe uma cor da paleta.</small></p>
+{{end}}
+<p style="margin-top:22px"><a href="/">← ver a agenda</a></p>
+</div>
+</body>
+</html>
+{{end}}

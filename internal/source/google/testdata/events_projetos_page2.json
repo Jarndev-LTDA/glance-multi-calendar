@@ -1,0 +1,6 @@
+{
+  "items": [
+    {"id": "proj2", "status": "confirmed", "summary": "Retro", "iCalUID": "proj2@google.com",
+     "start": {"dateTime": "2026-09-26T16:00:00-03:00"}, "end": {"dateTime": "2026-09-26T17:00:00-03:00"}}
+  ]
+}

@@ -39,6 +39,9 @@ var accounts = []source.Account{
 	}},
 }
 
+// Demo marks the payload as fictitious (see agenda.Result.Demo).
+func (s *Source) Demo() bool { return true }
+
 // Accounts returns the three fictitious accounts of the mockup.
 func (s *Source) Accounts(ctx context.Context) ([]source.Account, error) {
 	out := make([]source.Account, len(accounts))
