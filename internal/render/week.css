@@ -1,0 +1,62 @@
+/* glance-multi-calendar — widget styles. Every selector is prefixed with
+   .ag because an extension's CSS is global inside Glance. Colours come only
+   from Glance's theme variables, with fallbacks matching the default dark
+   theme; account colours arrive per element as --c. */
+.ag{container-type:inline-size;container-name:ag;font-size:12px;color:var(--color-text-base,#a3a5b4)}
+.ag *{box-sizing:border-box}
+.ag-in{--gutter:34px;--row:30px}
+
+.ag-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:0 0 10px;font-size:11px;color:var(--color-text-subdue,#6b6d7c)}
+.ag-legend b{font-weight:500;color:var(--color-text-base,#a3a5b4)}
+.ag-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;background:var(--c)}
+.ag-spacer{flex:1}
+.ag-warn b{color:var(--color-negative,#f07178)}
+
+.ag-head,.ag-allday,.ag-body{display:grid;grid-template-columns:var(--gutter) repeat(var(--ag-days,7),minmax(0,1fr))}
+.ag-head{border-bottom:1px solid var(--color-separator,#33343e)}
+.ag-d{padding:2px 0 7px;text-align:center;line-height:1.25}
+.ag-dow{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-subdue,#6b6d7c)}
+.ag-num{font-size:15px;color:var(--color-text-paragraph,#c7c9d4)}
+.ag-d.ag-today .ag-dow{color:var(--color-primary,#c6a0f6)}
+.ag-d.ag-today .ag-num{color:var(--color-background,#1b1c22);background:var(--color-primary,#c6a0f6);display:inline-block;min-width:23px;height:23px;line-height:23px;border-radius:50%;font-weight:600}
+
+.ag-allday{padding:5px 0;gap:2px;border-bottom:1px solid var(--color-separator,#33343e);min-height:28px}
+.ag-lbl{grid-column:1;grid-row:1 / -1;font-size:9px;color:var(--color-text-subdue,#6b6d7c);text-align:right;padding-right:6px;align-self:center;line-height:1.1}
+.ag-allday-ev{grid-column:var(--col) / span var(--span);font-size:10.5px;padding:2px 6px;border-radius:4px;color:var(--color-text-highlight,#e7e8ee);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 1px;background:color-mix(in srgb,var(--c) 22%,transparent);border-left:3px solid var(--c);text-decoration:none}
+
+.ag-body{position:relative;height:calc((var(--h1) - var(--h0)) * var(--row))}
+.ag-gut{position:relative}
+.ag-gut span{position:absolute;right:6px;font-size:9.5px;color:var(--color-text-subdue,#6b6d7c);transform:translateY(-50%)}
+.ag-day{position:relative;border-left:1px solid var(--color-separator,#33343e);background-image:repeating-linear-gradient(to bottom,var(--color-separator,#33343e) 0 1px,transparent 1px var(--row))}
+.ag-day.ag-today{background-color:color-mix(in srgb,var(--color-text-base,#a3a5b4) 5%,transparent)}
+
+.ag-ev{position:absolute;display:block;border-radius:5px;overflow:hidden;padding:2px 5px;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 17%,transparent);line-height:1.25;cursor:pointer;text-decoration:none;color:inherit}
+.ag-ev:hover{background:color-mix(in srgb,var(--c) 30%,transparent)}
+.ag-t{display:block;font-size:9px;color:var(--color-text-base,#a3a5b4);white-space:nowrap;overflow:hidden}
+.ag-n{display:block;font-size:10.5px;color:var(--color-text-highlight,#e7e8ee);font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.ag-ev.ag-curto{padding:1px 5px;white-space:nowrap}
+.ag-ev.ag-curto .ag-n{font-size:10px;display:inline}
+.ag-ev.ag-curto .ag-t{display:inline;margin-right:5px}
+
+.ag-now{position:absolute;left:0;right:0;height:0;border-top:1.5px solid var(--color-negative,#f07178);z-index:5;pointer-events:none}
+.ag-now::before{content:"";position:absolute;left:-4px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--color-negative,#f07178)}
+
+/* Narrow container (phone, or a small Glance column): 3 day columns, the
+   remaining days as a compact list. */
+.ag-resto{display:none;margin-top:12px;border-top:1px solid var(--color-separator,#33343e);padding-top:10px}
+.ag-resto h4{margin:0 0 7px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-subdue,#6b6d7c);font-weight:500}
+.ag-li{display:flex;gap:7px;align-items:baseline;padding:3px 0;font-size:11px}
+.ag-dia{width:42px;color:var(--color-text-subdue,#6b6d7c);font-size:10px;flex:none}
+.ag-hr{width:38px;color:var(--color-text-base,#a3a5b4);font-size:10px;flex:none}
+.ag-nm{color:var(--color-text-paragraph,#c7c9d4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ag-pin{width:3px;height:11px;border-radius:2px;background:var(--c);flex:none;align-self:center}
+.ag-errors{display:none}
+@container ag (max-width:560px){
+  .ag-in{--gutter:28px;--row:26px}
+  .ag-head,.ag-allday,.ag-body{grid-template-columns:var(--gutter) repeat(3,minmax(0,1fr))}
+  .ag-head > :nth-child(n+5),.ag-body > :nth-child(n+5){display:none}
+  .ag-allday-ev{grid-column:var(--col) / span var(--mspan)}
+  .ag-allday-ev.ag-far{display:none}
+  .ag-num{font-size:14px}
+  .ag-resto{display:block}
+}

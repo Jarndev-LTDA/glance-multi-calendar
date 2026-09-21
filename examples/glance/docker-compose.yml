@@ -1,0 +1,12 @@
+# Try the widget inside a real Glance in one command:
+#   cd examples/glance && docker compose up --build
+#   open http://localhost:18081
+services:
+  glance:
+    image: glanceapp/glance:latest
+    ports: ["127.0.0.1:18081:8080"]
+    volumes: ["./glance.yml:/app/config/glance.yml:ro"]
+    depends_on: [glance-multi-calendar]
+  glance-multi-calendar:
+    build: ../..
+    # image: ghcr.io/jarndev-ltda/glance-multi-calendar:latest

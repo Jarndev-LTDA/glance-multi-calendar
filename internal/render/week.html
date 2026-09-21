@@ -1,0 +1,16 @@
+{{define "fragment"}}<style>{{.CSS}}</style>
+<div class="ag"><div class="ag-in" style="--h0:{{.H0}};--h1:{{.H1}};--ag-days:{{len .Days}}">
+<div class="ag-legend">{{range .Legend}}<span{{if .NeedsReconnect}} class="ag-warn"{{end}}><i class="ag-dot" style="--c:{{.Color}}"></i><b>{{.Name}}</b></span>{{end}}<span class="ag-spacer"></span><span>{{.Labels.Updated}} {{.UpdatedAt}}</span></div>
+<div class="ag-head"><div></div>{{range .Days}}<div class="ag-d{{if .Today}} ag-today{{end}}"><div class="ag-dow">{{.Dow}}</div><div class="ag-num">{{.Num}}</div></div>{{end}}</div>
+<div class="ag-allday" style="grid-template-rows:repeat({{.AllDayRows}},auto)"><div class="ag-lbl">{{range $i, $l := lines .Labels.AllDay}}{{if $i}}<br>{{end}}{{$l}}{{end}}</div>{{range .AllDay}}
+<a class="ag-allday-ev{{if .Far}} ag-far{{end}}" style="--c:{{.Color}};--col:{{.Col}};--span:{{.Span}};--mspan:{{.MobileSpan}};grid-row:{{.Row}}" title="{{.Tip}}"{{if .URL}} href="{{.URL}}" target="_blank" rel="noopener"{{end}}>{{.Title}}</a>{{end}}</div>
+<div class="ag-body"><div class="ag-gut">{{range .Hours}}<span style="top:{{.Top}}%">{{.Label}}</span>{{end}}</div>{{range .Days}}
+<div class="ag-day{{if .Today}} ag-today{{end}}">{{range .Blocks}}
+<a class="ag-ev{{if .Short}} ag-curto{{end}}" style="--c:{{.Color}};top:{{.Top}}%;height:{{.Height}}%;left:calc({{.Left}}% + 2px);width:calc({{.Width}}% - 4px)" title="{{.Tip}}"{{if .URL}} href="{{.URL}}" target="_blank" rel="noopener"{{end}}><span class="ag-t">{{.Time}}</span><span class="ag-n">{{.Title}}</span></a>{{end}}{{if .NowTop}}
+<div class="ag-now" style="top:{{.NowTop}}%"></div>{{end}}</div>{{end}}
+</div>{{if .Rest}}
+<div class="ag-resto"><h4>{{.RestTitle}}</h4>{{range .Rest}}
+<div class="ag-li"><i class="ag-pin" style="--c:{{.Color}}"></i><span class="ag-dia">{{.Day}}</span><span class="ag-hr">{{.Time}}</span><span class="ag-nm">{{.Title}}</span></div>{{end}}</div>{{end}}{{if .Errors}}
+<div class="ag-errors" data-count="{{len .Errors}}">{{range .Errors}}<p>{{.}}</p>{{end}}</div>{{end}}
+</div></div>
+{{end}}

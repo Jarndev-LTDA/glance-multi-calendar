@@ -5,13 +5,20 @@ Show the events of **several Google accounts** inside your
 in the style of Google Calendar. One colour per account, every calendar of each
 account discovered automatically, recurring events already expanded by the API.
 
-![desktop](mockup/agenda-desktop.png)
+![inside Glance](docs/screenshots/glance-desktop.png)
 
-<p align="center"><img src="mockup/agenda-mobile.png" width="390" alt="mobile"></p>
+<p align="center">
+<img src="docs/screenshots/glance-phone.png" width="300" alt="Glance on a phone">
+<img src="docs/screenshots/phone-light.png" width="300" alt="light theme">
+</p>
 
-> Status: **work in progress**. What works today is the HTTP skeleton with
-> demo data (`/healthz`, `/events.json`). OAuth, the grid widget and the
-> published image are next. The screenshots above are the target rendering.
+Real renders of the demo data inside Glance 0.8.6 (`examples/glance/`) and on
+the standalone page in the light theme. In a narrow container the grid keeps
+three days and lists the rest below.
+
+> Status: **work in progress**. What works today: the grid widget
+> (`/widget/week`, `/`) and `/events.json`, all on demo data. Google OAuth
+> and the published image are next.
 
 ## Why
 
@@ -38,10 +45,13 @@ Read-only. It never writes to your calendars.
 
 ```bash
 git clone https://github.com/jarndev-ltda/glance-multi-calendar
-cd glance-multi-calendar
-docker compose up --build
-curl http://localhost:8089/events.json
+cd glance-multi-calendar/examples/glance
+docker compose up --build        # a throwaway Glance + the widget
+# open http://localhost:18081
 ```
+
+Or just the service: `docker compose up --build` at the repo root, then
+`http://localhost:8089/` (standalone page) and `/events.json`.
 
 With no account connected the service serves a fictitious week so you can
 evaluate the widget before creating anything in Google Cloud.
@@ -91,8 +101,12 @@ ssh -L 8089:localhost:8089 your-server   # only while connecting
 |---|---|
 | `GET /healthz` | `200 ok` |
 | `GET /events.json?days=7&from=YYYY-MM-DD` | merged events, sorted by start, times in the configured zone |
-| `GET /widget/week` | *(soon)* HTML fragment with `Widget-Title` / `Widget-Content-Type` headers |
+| `GET /widget/week` | HTML fragment with `Widget-Title` / `Widget-Content-Type: html` headers, for the `extension` widget |
+| `GET /?theme=dark\|light` | the same grid as a standalone page, for debugging in both Glance themes |
 | `GET /connect` | *(soon)* connected accounts + "connect another account" |
+
+The grid routes also accept `start_hour`, `end_hour` (override the floor,
+still clamped by `min_hour`/`max_hour`) and `accounts=a,b` (filter).
 
 `/events.json` shape:
 
@@ -115,25 +129,32 @@ ssh -L 8089:localhost:8089 your-server   # only while connecting
 All-day events carry midnight `start`/`end` with an **exclusive** end, as in
 the Google API and RFC 5545.
 
-## Glance widget (soon)
+## Glance widget
 
 ```yaml
 - type: extension
-  url: http://glance-multi-calendar:8080/widget/week
-  allow-potentially-dangerous-html: true
+  url: http://glance-multi-calendar:8080/widget/week   # service name on the compose network
+  allow-potentially-dangerous-html: true               # required: without it Glance shows the HTML as text
   cache: 5m
 ```
+
+Put it in a `full` column: seven day columns need the width. All colours come
+from Glance's theme variables (`--color-primary`, `--color-text-*`,
+`--color-separator`...), so the widget follows whatever theme is active; the
+account colour is the only literal one.
 
 ## Development
 
 ```bash
-go test ./...
+go test ./...                                   # includes a golden-file test of the rendered week
+go test ./internal/render -update               # refresh the golden after an intended change
 go run ./cmd/glance-multi-calendar -config config.example.yml
-docker build --platform linux/arm64 .      # cross-compiles, no qemu needed
+./scripts/screenshots.sh docs/screenshots       # PNGs of the running service, both themes
+docker build --platform linux/arm64 .           # cross-compiles, no qemu needed
 ```
 
-`mockup/agenda.html` is the visual specification; `mockup/render.sh`
-regenerates the PNGs with headless Chrome.
+`mockup/agenda.html` is the original visual specification the template was
+ported from.
 
 ## License
 

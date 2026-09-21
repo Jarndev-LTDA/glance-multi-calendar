@@ -36,6 +36,8 @@ type Account struct {
 type Config struct {
 	Listen          string        `yaml:"listen"`
 	Timezone        string        `yaml:"timezone"`
+	Language        string        `yaml:"language"` // pt-BR or en
+	Title           string        `yaml:"title"`    // widget title; defaults per language
 	Refresh         time.Duration `yaml:"refresh"`
 	DataDir         string        `yaml:"data_dir"`
 	Window          Window        `yaml:"window"`
@@ -51,6 +53,7 @@ func Default() Config {
 	return Config{
 		Listen:   ":8080",
 		Timezone: "UTC",
+		Language: "en",
 		Refresh:  5 * time.Minute,
 		DataDir:  "/data",
 		Window:   Window{Days: 7, StartHour: 7, EndHour: 22, MinHour: 0, MaxHour: 24},
@@ -96,6 +99,9 @@ func (c *Config) Validate() error {
 	if w.MinHour < 0 || w.MaxHour > 24 || w.MinHour > w.StartHour || w.StartHour >= w.EndHour || w.EndHour > w.MaxHour {
 		return fmt.Errorf("window hours must satisfy 0 <= min_hour <= start_hour < end_hour <= max_hour <= 24, got min=%d start=%d end=%d max=%d",
 			w.MinHour, w.StartHour, w.EndHour, w.MaxHour)
+	}
+	if c.Language != "pt-BR" && c.Language != "en" {
+		return fmt.Errorf("language must be pt-BR or en, got %q", c.Language)
 	}
 	if c.Refresh < 30*time.Second {
 		return fmt.Errorf("refresh must be at least 30s, got %s", c.Refresh)

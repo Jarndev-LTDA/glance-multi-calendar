@@ -4,6 +4,8 @@
 
 listen: ":8080"
 timezone: America/Bahia   # any IANA name; the grid is rendered server-side in this zone
+language: pt-BR           # labels: pt-BR or en
+# title: Agenda           # widget title (default: "Agenda" / "Calendar" by language)
 refresh: 5m               # how often the calendar APIs are polled
 data_dir: /data           # where tokens.json lives (mount a volume here)
 

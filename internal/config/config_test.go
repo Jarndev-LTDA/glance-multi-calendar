@@ -72,6 +72,7 @@ func TestValidateRejects(t *testing.T) {
 		"min>start":    func(c *Config) { c.Window.MinHour = 9 },
 		"max>24":       func(c *Config) { c.Window.MaxHour = 25 },
 		"refresh":      func(c *Config) { c.Refresh = time.Second },
+		"language":     func(c *Config) { c.Language = "fr" },
 		"bad color":    func(c *Config) { c.Accounts = []Account{{ID: "a", Color: "blue"}} },
 		"bad id":       func(c *Config) { c.Accounts = []Account{{ID: "Pessoal"}} },
 		"duplicate id": func(c *Config) { c.Accounts = []Account{{ID: "a"}, {ID: "a"}} },

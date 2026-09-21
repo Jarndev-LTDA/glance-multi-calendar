@@ -5,3 +5,6 @@ mockup
 .env*
 data
 tokens.json
+docs
+scripts
+examples

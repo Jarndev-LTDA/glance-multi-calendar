@@ -1,0 +1,23 @@
+{{define "page"}}<!doctype html>
+<html lang="{{.Lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{.Title}}</title>
+<style>
+:root{{.ThemeCSS}}
+*{box-sizing:border-box}
+body{margin:0;padding:22px;background:var(--color-background);font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.frame{max-width:1180px;margin:0 auto;background:var(--color-widget-background);border-radius:8px;padding:16px 18px 18px}
+.frame-title{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-text-subdue);margin:0 0 14px}
+@media (max-width:560px){body{padding:10px}.frame{padding:12px 10px 14px}}
+</style>
+</head>
+<body>
+<div class="frame">
+<p class="frame-title">{{.Title}}</p>
+{{template "fragment" .Fragment}}
+</div>
+</body>
+</html>
+{{end}}

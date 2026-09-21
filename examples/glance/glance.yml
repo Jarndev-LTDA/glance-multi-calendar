@@ -1,0 +1,21 @@
+pages:
+  - name: Agenda
+    columns:
+      - size: full
+        widgets:
+          - type: extension
+            url: http://glance-multi-calendar:8080/widget/week
+            allow-potentially-dangerous-html: true   # required, or the HTML is shown as text
+            cache: 1s                                # 5m in real use
+  - name: Narrow column
+    columns:
+      - size: small
+        widgets:
+          - type: extension
+            url: http://glance-multi-calendar:8080/widget/week
+            allow-potentially-dangerous-html: true
+            cache: 1s
+      - size: full
+        widgets:
+          - type: clock
+            hour-format: 24h
