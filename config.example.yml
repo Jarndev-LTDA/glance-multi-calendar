@@ -1,0 +1,29 @@
+# glance-multi-calendar — configuration (no secrets in here).
+# Copy to config.yml. Secrets go in .env (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET)
+# and the OAuth refresh tokens are written by the service to <data_dir>/tokens.json.
+
+listen: ":8080"
+timezone: America/Bahia   # any IANA name; the grid is rendered server-side in this zone
+refresh: 5m               # how often the calendar APIs are polled
+data_dir: /data           # where tokens.json lives (mount a volume here)
+
+window:
+  days: 7                 # rolling window starting today
+  start_hour: 7           # the grid never shows less than 07:00-22:00...
+  end_hour: 22
+  min_hour: 0             # ...but stretches up to 00:00-24:00 when an event needs it
+  max_hour: 24
+
+# Label and colour per ACCOUNT (the unit the UI groups by). Every calendar of
+# the account inherits its colour. IDs are what /connect asks you to pick.
+accounts:
+  - id: pessoal
+    name: Pessoal
+    color: "#7aa2f7"
+  - id: trabalho
+    name: Trabalho
+    color: "#9ece6a"
+
+# Calendar IDs to skip, e.g. holiday calendars:
+# ignore_calendars:
+#   - pt.brazilian#holiday@group.v.calendar.google.com

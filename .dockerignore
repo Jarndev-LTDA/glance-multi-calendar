@@ -1,0 +1,7 @@
+.git
+.github
+mockup
+*.md
+.env*
+data
+tokens.json

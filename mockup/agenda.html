@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>glance-agenda — mockup</title>
+<style>
+/* ------------------------------------------------------------------
+   MOCKUP ESTATICO do widget `agenda` (7 dias) para o Glance.
+   Nao ha JS: tudo que aparece aqui e o HTML que o servico vai emitir.
+   As variaveis abaixo so existem para o arquivo abrir sozinho no
+   navegador; DENTRO do Glance elas vem do tema (por isso todo uso e
+   var(--color-*, fallback)).
+   ------------------------------------------------------------------ */
+:root{
+  --color-background:#1b1c22;
+  --color-widget-background:#22232b;
+  --color-text-base:#a3a5b4;
+  --color-text-paragraph:#c7c9d4;
+  --color-text-highlight:#e7e8ee;
+  --color-text-subdue:#6b6d7c;
+  --color-separator:#33343e;
+  --color-primary:#c6a0f6;
+  --color-negative:#f07178;
+
+  --gutter:34px;
+  --row:30px;          /* altura de 1 hora */
+  --h0:7;              /* primeira hora exibida */
+  --h1:22;             /* ultima hora exibida  */
+
+  --cal-pessoal:#7aa2f7;
+  --cal-trabalho:#9ece6a;
+  --cal-familia:#e0af68;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;padding:22px;
+  background:var(--color-background);
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+/* ---- moldura que imita o cartao do Glance (nao faz parte do widget) ---- */
+.frame{max-width:1180px;margin:0 auto;background:var(--color-widget-background);
+  border-radius:8px;padding:16px 18px 18px}
+.frame-title{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--color-text-subdue);margin:0 0 14px}
+
+/* ======================= WIDGET ======================= */
+.ag{font-size:12px;color:var(--color-text-base)}
+
+/* ---- barra de legenda / calendarios ---- */
+.ag-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+  margin:0 0 10px;font-size:11px;color:var(--color-text-subdue)}
+.ag-legend b{font-weight:500;color:var(--color-text-base)}
+.ag-legend .dot{display:inline-block;width:7px;height:7px;border-radius:50%;
+  margin-right:5px;vertical-align:1px}
+.ag-legend .spacer{flex:1}
+
+/* ---- cabecalho de dias + faixa de dia inteiro ---- */
+.ag-head,.ag-allday,.ag-body{
+  display:grid;grid-template-columns:var(--gutter) repeat(7,minmax(0,1fr));
+}
+.ag-head{border-bottom:1px solid var(--color-separator)}
+.ag-head .d{padding:2px 0 7px;text-align:center;line-height:1.25}
+.ag-head .dow{font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--color-text-subdue)}
+.ag-head .num{font-size:15px;color:var(--color-text-paragraph)}
+.ag-head .today .dow{color:var(--color-primary)}
+.ag-head .today .num{color:var(--color-background);background:var(--color-primary);
+  display:inline-block;min-width:23px;height:23px;line-height:23px;border-radius:50%;
+  font-weight:600}
+
+/* ---- faixa "dia inteiro" ---- */
+.ag-allday{padding:5px 0;gap:2px;border-bottom:1px solid var(--color-separator);
+  min-height:28px}
+.ag-allday .lbl{font-size:9px;color:var(--color-text-subdue);text-align:right;
+  padding-right:6px;align-self:center;line-height:1.1}
+.allday-ev{font-size:10.5px;padding:2px 6px;border-radius:4px;
+  color:var(--color-text-highlight);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;margin:0 1px}
+
+/* ---- corpo: 1 coluna por dia, eventos posicionados em % ---- */
+.ag-body{position:relative;height:calc((var(--h1) - var(--h0)) * var(--row))}
+.ag-body .gut{position:relative}
+.ag-body .gut span{position:absolute;right:6px;font-size:9.5px;
+  color:var(--color-text-subdue);transform:translateY(-50%)}
+.day{position:relative;border-left:1px solid var(--color-separator);
+  background-image:repeating-linear-gradient(
+    to bottom,var(--color-separator) 0 1px,transparent 1px var(--row));
+}
+.day.today{background-color:rgba(255,255,255,.022)}
+
+/* ---- evento ---- */
+.ev{position:absolute;left:2px;right:2px;border-radius:5px;overflow:hidden;
+  padding:2px 5px;border-left:3px solid var(--c);
+  background:color-mix(in srgb,var(--c) 17%,transparent);
+  line-height:1.25;cursor:pointer}
+.ev .t{display:block;font-size:9px;color:var(--color-text-base);
+  white-space:nowrap;overflow:hidden}
+.ev .n{display:block;font-size:10.5px;color:var(--color-text-highlight);
+  font-weight:500;overflow:hidden;text-overflow:ellipsis}
+.ev.curto{padding:1px 5px}
+.ev.curto .n{font-size:10px;display:inline}
+.ev.curto .t{display:inline;margin-right:5px}
+
+/* ---- linha do "agora" ---- */
+.now{position:absolute;left:0;right:0;height:0;border-top:1.5px solid var(--color-negative);
+  z-index:5}
+.now::before{content:"";position:absolute;left:-4px;top:-4px;width:7px;height:7px;
+  border-radius:50%;background:var(--color-negative)}
+
+/* ======================= MOBILE =======================
+   < 560px o grid de 7 colunas vira 3 dias (como o Google no celular).
+   Os 4 dias restantes viram uma lista compacta embaixo.           */
+@media (max-width:560px){
+  body{padding:10px}
+  .frame{padding:12px 10px 14px}
+  :root{--gutter:28px;--row:26px}
+  .ag-head,.ag-allday,.ag-body{grid-template-columns:var(--gutter) repeat(3,minmax(0,1fr))}
+  .ag-head .d:nth-child(n+5),
+  .ag-allday > *:nth-child(n+5),
+  .ag-body > *:nth-child(n+5){display:none}
+  .ag-head .num{font-size:14px}
+  .ag .resto{display:block}
+}
+.resto{display:none;margin-top:12px;border-top:1px solid var(--color-separator);
+  padding-top:10px}
+.resto h4{margin:0 0 7px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--color-text-subdue);font-weight:500}
+.resto .li{display:flex;gap:7px;align-items:baseline;padding:3px 0;font-size:11px}
+.resto .li .dia{width:42px;color:var(--color-text-subdue);font-size:10px;flex:none}
+.resto .li .hr{width:38px;color:var(--color-text-base);font-size:10px;flex:none}
+.resto .li .nm{color:var(--color-text-paragraph);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.resto .li .pin{width:3px;height:11px;border-radius:2px;background:var(--c);flex:none}
+</style>
+</head>
+<body>
+<div class="frame">
+  <p class="frame-title">Agenda &middot; próximos 7 dias</p>
+
+  <div class="ag">
+    <div class="ag-legend">
+      <span><i class="dot" style="background:var(--cal-pessoal)"></i><b>Pessoal</b></span>
+      <span><i class="dot" style="background:var(--cal-trabalho)"></i><b>Trabalho</b></span>
+      <span><i class="dot" style="background:var(--cal-familia)"></i><b>Família</b></span>
+      <span class="spacer"></span>
+      <span>atualizado 10:38</span>
+    </div>
+
+    <!-- cabecalho -->
+    <div class="ag-head">
+      <div></div>
+      <div class="d today"><div class="dow">Seg</div><div class="num">21</div></div>
+      <div class="d"><div class="dow">Ter</div><div class="num">22</div></div>
+      <div class="d"><div class="dow">Qua</div><div class="num">23</div></div>
+      <div class="d"><div class="dow">Qui</div><div class="num">24</div></div>
+      <div class="d"><div class="dow">Sex</div><div class="num">25</div></div>
+      <div class="d"><div class="dow">Sáb</div><div class="num">26</div></div>
+      <div class="d"><div class="dow">Dom</div><div class="num">27</div></div>
+    </div>
+
+    <!-- dia inteiro (evento de varios dias ocupa varias colunas) -->
+    <div class="ag-allday">
+      <div class="lbl">dia<br>todo</div>
+      <div></div><div></div><div></div>
+      <div class="allday-ev" style="background:color-mix(in srgb,var(--cal-familia) 22%,transparent);border-left:3px solid var(--cal-familia)">🎂 Aniversário da Ana</div>
+      <div class="allday-ev" style="grid-column:6 / span 2;background:color-mix(in srgb,var(--cal-pessoal) 22%,transparent);border-left:3px solid var(--cal-pessoal)">✈️ Viagem — Chapada</div>
+    </div>
+
+    <!-- corpo -->
+    <div class="ag-body">
+      <div class="gut">
+        <span style="top:6.67%">08</span>
+        <span style="top:20.00%">10</span>
+        <span style="top:33.33%">12</span>
+        <span style="top:46.67%">14</span>
+        <span style="top:60.00%">16</span>
+        <span style="top:73.33%">18</span>
+        <span style="top:86.67%">20</span>
+      </div>
+
+      <!-- SEG 21 (hoje) -->
+      <div class="day today">
+        <div class="ev" style="--c:var(--cal-trabalho);top:13.33%;height:11.11%">
+          <span class="t">09:00</span><span class="n">Daily + planning</span></div>
+        <div class="ev curto" style="--c:var(--cal-pessoal);top:33.33%;height:3.33%">
+          <span class="t">12:00</span><span class="n">Almoço</span></div>
+        <div class="ev" style="--c:var(--cal-trabalho);top:46.67%;height:13.33%">
+          <span class="t">14:00</span><span class="n">Code review — Ownlar</span></div>
+        <div class="ev" style="--c:var(--cal-familia);top:86.67%;height:10%">
+          <span class="t">20:00</span><span class="n">Jantar em família</span></div>
+        <div class="now" style="top:24.44%"></div>
+      </div>
+
+      <!-- TER 22 -->
+      <div class="day">
+        <div class="ev" style="--c:var(--cal-trabalho);top:6.67%;height:8.89%">
+          <span class="t">08:00</span><span class="n">1:1 com o time</span></div>
+        <div class="ev" style="--c:var(--cal-pessoal);top:60%;height:13.33%">
+          <span class="t">16:00</span><span class="n">Academia</span></div>
+      </div>
+
+      <!-- QUA 23 — demonstra sobreposicao lado a lado -->
+      <div class="day">
+        <div class="ev" style="--c:var(--cal-trabalho);top:20%;height:13.33%;right:50%">
+          <span class="t">10:00</span><span class="n">Cliente Roble</span></div>
+        <div class="ev" style="--c:var(--cal-pessoal);top:26.67%;height:16.67%;left:50%">
+          <span class="t">11:00</span><span class="n">Dentista</span></div>
+        <div class="ev" style="--c:var(--cal-trabalho);top:53.33%;height:20%">
+          <span class="t">15:00</span><span class="n">Workshop LLM local</span></div>
+      </div>
+
+      <!-- QUI 24 -->
+      <div class="day">
+        <div class="ev" style="--c:var(--cal-trabalho);top:13.33%;height:6.67%">
+          <span class="t">09:00</span><span class="n">Deploy janela</span></div>
+        <div class="ev" style="--c:var(--cal-pessoal);top:73.33%;height:13.33%">
+          <span class="t">18:00</span><span class="n">Aula de inglês</span></div>
+      </div>
+
+      <!-- SEX 25 -->
+      <div class="day">
+        <div class="ev" style="--c:var(--cal-trabalho);top:13.33%;height:11.11%">
+          <span class="t">09:00</span><span class="n">Retro da sprint</span></div>
+        <div class="ev curto" style="--c:var(--cal-trabalho);top:40%;height:3.33%">
+          <span class="t">13:00</span><span class="n">Call rápida</span></div>
+      </div>
+
+      <!-- SAB 26 -->
+      <div class="day">
+        <div class="ev" style="--c:var(--cal-pessoal);top:26.67%;height:20%">
+          <span class="t">11:00</span><span class="n">Trilha — Chapada</span></div>
+      </div>
+
+      <!-- DOM 27 -->
+      <div class="day">
+        <div class="ev" style="--c:var(--cal-familia);top:66.67%;height:16.67%">
+          <span class="t">17:00</span><span class="n">Churrasco</span></div>
+      </div>
+    </div>
+
+    <!-- fallback mobile: os 4 dias que nao cabem viram lista -->
+    <div class="resto">
+      <h4>Qui 24 — Dom 27</h4>
+      <div class="li"><i class="pin" style="--c:var(--cal-familia)"></i><span class="dia">Qui 24</span><span class="hr">dia</span><span class="nm">🎂 Aniversário da Ana</span></div>
+      <div class="li"><i class="pin" style="--c:var(--cal-trabalho)"></i><span class="dia">Qui 24</span><span class="hr">09:00</span><span class="nm">Deploy janela</span></div>
+      <div class="li"><i class="pin" style="--c:var(--cal-pessoal)"></i><span class="dia">Qui 24</span><span class="hr">18:00</span><span class="nm">Aula de inglês</span></div>
+      <div class="li"><i class="pin" style="--c:var(--cal-trabalho)"></i><span class="dia">Sex 25</span><span class="hr">09:00</span><span class="nm">Retro da sprint</span></div>
+      <div class="li"><i class="pin" style="--c:var(--cal-pessoal)"></i><span class="dia">Sex 25</span><span class="hr">dia</span><span class="nm">✈️ Viagem — Chapada</span></div>
+      <div class="li"><i class="pin" style="--c:var(--cal-pessoal)"></i><span class="dia">Sáb 26</span><span class="hr">11:00</span><span class="nm">Trilha — Chapada</span></div>
+      <div class="li"><i class="pin" style="--c:var(--cal-familia)"></i><span class="dia">Dom 27</span><span class="hr">17:00</span><span class="nm">Churrasco</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

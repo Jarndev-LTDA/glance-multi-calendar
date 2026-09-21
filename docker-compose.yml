@@ -1,0 +1,19 @@
+# Self-contained example. `docker compose up` with no config at all serves the
+# demo data at http://localhost:8089/events.json.
+services:
+  glance-multi-calendar:
+    image: ghcr.io/jarndev-ltda/glance-multi-calendar:latest
+    build: .
+    container_name: glance-multi-calendar
+    restart: unless-stopped
+    ports:
+      - "8089:8080"
+    volumes:
+      - ./config.example.yml:/config.yml:ro   # replace with ./config.yml
+      - gmc-data:/data                        # holds tokens.json (0600)
+    environment:
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+
+volumes:
+  gmc-data:

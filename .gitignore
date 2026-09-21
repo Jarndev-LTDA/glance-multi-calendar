@@ -1,0 +1,17 @@
+# secrets and runtime state — never commit
+.env
+.env.*
+!.env.example
+tokens.json
+data/
+
+# local config (config.example.yml is the versioned one)
+/config.yml
+
+# build output
+/glance-multi-calendar
+/dist/
+/out/
+
+# personal planning notes, kept out of the public repo
+/PLANO.md
