@@ -18,8 +18,9 @@ three days and lists the rest below.
 
 > Status: **work in progress**. The grid, `/events.json` and the Google
 > OAuth flow (`/connect`) are implemented and covered by tests against
-> recorded API responses; end-to-end validation with real accounts and the
-> published image are next.
+> recorded API responses. Every push to `main` publishes
+> `ghcr.io/jarndev-ltda/glance-multi-calendar:latest` (amd64 + arm64).
+> End-to-end validation with real accounts is the next milestone.
 
 ## Why
 

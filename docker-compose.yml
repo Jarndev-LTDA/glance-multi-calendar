@@ -1,19 +1,21 @@
 # Self-contained example. `docker compose up` with no config at all serves the
-# demo data at http://localhost:8089/events.json.
+# demo data at http://localhost:8089/events.json. Put GOOGLE_CLIENT_ID and
+# GOOGLE_CLIENT_SECRET in a .env file next to this compose to enable /connect.
 services:
   glance-multi-calendar:
     image: ghcr.io/jarndev-ltda/glance-multi-calendar:latest
-    build: .
+    # build: .                                # uncomment to build from source instead
     container_name: glance-multi-calendar
     restart: unless-stopped
     ports:
-      - "8089:8080"
+      - "127.0.0.1:8089:8080"                 # loopback only: /connect is reached through an SSH tunnel
     volumes:
       - ./config.example.yml:/config.yml:ro   # replace with ./config.yml
-      - gmc-data:/data                        # holds tokens.json (0600)
+      - gmc-data:/data                        # holds tokens.json (0600); a named volume keeps the image's ownership
     environment:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GMC_AUTH_TOKEN: ${GMC_AUTH_TOKEN:-}
 
 volumes:
   gmc-data:
