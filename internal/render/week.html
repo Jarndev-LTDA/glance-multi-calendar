@@ -1,6 +1,6 @@
 {{define "fragment"}}<style>{{.CSS}}</style>
 <div class="ag"><div class="ag-in" style="--h0:{{.H0}};--h1:{{.H1}};--ag-days:{{len .Days}}">
-<div class="ag-legend">{{range .Legend}}<span{{if .NeedsReconnect}} class="ag-warn"{{end}}><i class="ag-dot" style="--c:{{.Color}}"></i><b>{{.Name}}</b></span>{{end}}<span class="ag-spacer"></span><span>{{.Labels.Updated}} {{.UpdatedAt}}</span></div>
+<div class="ag-legend">{{range .Legend}}<span{{if .NeedsReconnect}} class="ag-warn"{{end}}><i class="ag-dot" style="--c:{{.Color}}"></i><b>{{.Name}}</b>{{if .NeedsReconnect}} <em>{{$.Labels.Reconnect}}</em>{{end}}</span>{{end}}<span class="ag-spacer"></span>{{if .Demo}}<span class="ag-demo">{{.Labels.Demo}}</span>{{end}}{{if .Errors}}<span class="ag-err" title="{{.ErrorsTip}}"></span>{{end}}<span>{{.Labels.Updated}} {{.UpdatedAt}}</span></div>
 <div class="ag-head"><div></div>{{range .Days}}<div class="ag-d{{if .Today}} ag-today{{end}}"><div class="ag-dow">{{.Dow}}</div><div class="ag-num">{{.Num}}</div></div>{{end}}</div>
 <div class="ag-allday" style="grid-template-rows:repeat({{.AllDayRows}},auto)"><div class="ag-lbl">{{range $i, $l := lines .Labels.AllDay}}{{if $i}}<br>{{end}}{{$l}}{{end}}</div>{{range .AllDay}}
 <a class="ag-allday-ev{{if .Far}} ag-far{{end}}" style="--c:{{.Color}};--col:{{.Col}};--span:{{.Span}};--mspan:{{.MobileSpan}};grid-row:{{.Row}}" title="{{.Tip}}"{{if .URL}} href="{{.URL}}" target="_blank" rel="noopener"{{end}}>{{.Title}}</a>{{end}}</div>

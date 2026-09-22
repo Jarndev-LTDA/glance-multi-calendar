@@ -13,18 +13,23 @@ import (
 
 // Labels are the UI strings, chosen by config `language`.
 type Labels struct {
-	Title    string
-	Weekdays [7]string // Sunday first, like time.Weekday
-	AllDay   string
-	Updated  string
-	Rest     string // header of the mobile list, e.g. "%s — %s"
+	Title     string
+	Weekdays  [7]string // Sunday first, like time.Weekday
+	AllDay    string
+	Updated   string
+	Rest      string // header of the mobile list, e.g. "%s — %s"
+	Demo      string // legend note while fictitious data is served
+	Reconnect string // legend note next to an account whose token stopped working
+	Errors    string // title of the error indicator, "%d" = count
 }
 
 var labelSets = map[string]Labels{
 	"pt-BR": {Title: "Agenda", Weekdays: [7]string{"Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"},
-		AllDay: "dia\ntodo", Updated: "atualizado", Rest: "%s — %s"},
+		AllDay: "dia\ntodo", Updated: "atualizado", Rest: "%s — %s",
+		Demo: "dados de demonstração", Reconnect: "reconectar", Errors: "%d aviso(s):"},
 	"en": {Title: "Calendar", Weekdays: [7]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"},
-		AllDay: "all\nday", Updated: "updated", Rest: "%s — %s"},
+		AllDay: "all\nday", Updated: "updated", Rest: "%s — %s",
+		Demo: "demo data", Reconnect: "reconnect", Errors: "%d warning(s):"},
 }
 
 // LabelsFor returns the label set for a language, falling back to English.
@@ -60,6 +65,8 @@ type View struct {
 	Rest       []RestItem
 	RestTitle  string
 	Errors     []string
+	ErrorsTip  string // Errors joined for a title= attribute
+	Demo       bool
 	Labels     Labels
 }
 
@@ -133,7 +140,10 @@ func Layout(res Result, opt LayoutOptions) View {
 		colorOf[a.ID] = a.Color
 	}
 
-	v := View{Title: lab.Title, Labels: lab, Errors: res.Errors, UpdatedAt: res.GeneratedAt.In(loc).Format("15:04")}
+	v := View{Title: lab.Title, Labels: lab, Errors: res.Errors, Demo: res.Demo, UpdatedAt: res.GeneratedAt.In(loc).Format("15:04")}
+	if len(res.Errors) > 0 {
+		v.ErrorsTip = fmt.Sprintf(lab.Errors, len(res.Errors)) + "\n" + strings.Join(res.Errors, "\n")
+	}
 	for _, a := range res.Accounts {
 		v.Legend = append(v.Legend, LegendItem{Name: a.Name, Color: a.Color, NeedsReconnect: a.NeedsReconnect})
 	}

@@ -11,6 +11,9 @@
 .ag-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;background:var(--c)}
 .ag-spacer{flex:1}
 .ag-warn b{color:var(--color-negative,#f07178)}
+.ag-warn em{font-style:normal;color:var(--color-negative,#f07178);opacity:.85}
+.ag-demo{font-style:italic;color:var(--color-text-subdue,#6b6d7c);border:1px dashed var(--color-separator,#33343e);border-radius:4px;padding:1px 6px}
+.ag-err{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-negative,#f07178);cursor:help}
 
 .ag-head,.ag-allday,.ag-body{display:grid;grid-template-columns:var(--gutter) repeat(var(--ag-days,7),minmax(0,1fr))}
 .ag-head{border-bottom:1px solid var(--color-separator,#33343e)}

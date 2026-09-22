@@ -126,6 +126,40 @@ func TestEscaping(t *testing.T) {
 	}
 }
 
+func TestLegendNotes(t *testing.T) {
+	v := demoView(t)
+	v.Demo = true
+	v.Errors = []string{`trabalho (x@y): needs reconnect`, `pessoal / "Projetos": http 500`}
+	v.ErrorsTip = "2 aviso(s):\n" + strings.Join(v.Errors, "\n")
+	v.Legend[1].NeedsReconnect = true
+	var buf bytes.Buffer
+	if err := Fragment(&buf, v); err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+	for _, want := range []string{`class="ag-demo">dados de demonstração<`, `class="ag-warn"`, `<em>reconectar</em>`, `class="ag-err" title="2 aviso(s):`, `&#34;Projetos&#34;`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %q", want)
+		}
+	}
+	if strings.Contains(out, `"Projetos"`) {
+		t.Error("error text must be escaped inside title=")
+	}
+	// none of it when everything is fine (the demo source itself is flagged demo)
+	buf.Reset()
+	clean := demoView(t)
+	clean.Demo = false
+	Fragment(&buf, clean)
+	if strings.Contains(buf.String(), `class="ag-demo"`) || strings.Contains(buf.String(), `class="ag-err"`) || strings.Contains(buf.String(), `class="ag-warn"`) {
+		t.Error("notes must be absent on a clean, non-demo view")
+	}
+	buf.Reset()
+	Fragment(&buf, demoView(t))
+	if !strings.Contains(buf.String(), `class="ag-demo"`) {
+		t.Error("demo source view must carry the demo note")
+	}
+}
+
 func TestPage(t *testing.T) {
 	for _, th := range ThemeNames() {
 		var buf bytes.Buffer
